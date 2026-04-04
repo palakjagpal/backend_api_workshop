@@ -6,7 +6,6 @@ import authRoutes from './routes/authRoutes.js';
 import connectDB from './config/db.js';
 import  itemRoutes from './routes/itemRoute.js';
 
-
 dotenv.config();
 
 const app = express();
@@ -18,8 +17,6 @@ connectDB();
 
 app.use("/api/auth", authRoutes);
 app.use("/api/items", itemRoutes);
-
-
 
 app.get("/",(req,res)=> {
     res.send("🚀 Auth API is running...")
