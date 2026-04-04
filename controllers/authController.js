@@ -1,74 +1,5 @@
-<<<<<<< HEAD
-import dotenv from 'dotenv';
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
-
-import User from '../model/authmodel.js';
-
-dotenv.config();
-
- export const signup = async(req,res)=>
- {   
-    try
-    {
-        const{name,email,password}=req.body;
-        const exist=await User.findOne({email})
-       if (exist) {
-           return res.status(400).json({ msg: "User already registered" });
-}
-        const hashed=await bcrypt.hash(password,10);
-        const data= new User({name,email,password:hashed});
-        console.log("data is saved");
-        await data.save();
-        console.log("Saving user:", data);
-        // res.status(200).json({msg:"data saved" });
-        res.json({
-          msg: "data saved",
-         user: { name, email }
-            });
-    }
-
-  catch (error) {
-  console.error(error); // This will print the real error in your terminal
-  res.status(500).json({ msg: "cant signup", error: error.message });
-}
-
-}
-
-export const  login= async(req,res)=>
-    
-    {
-        try{
-      const{email,password}=req.body;
-      const user=await User.findOne({email});
-      if(!user) return res.status(401).json({msg:"not correct email"});
-      const valid =await bcrypt.compare(password,user.password)
-      if(!valid) return res.status(401).json({msg:"wrong password"});
-
-      const token= jwt.sign({id:user._id,email:user.email,name: user.name},process.env.JWT_SECRET,{expiresIn:"1h" });
-
-    res.status(200).json({
-            msg: "user login successfully",
-            token,
-            user: {
-                name: user.name,
-                email: user.email
-                      }
-                    });
-        }
-        catch(error)
-        {
-             res.status(400).json({msg:"cant login"});
-        }
-    }
-    
-
-
-
-
-=======
 import User_Model from "../models/authModel.js";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 
@@ -90,14 +21,14 @@ export const signup = async(req,res)=>{
         await user.save()
 
         console.log("New user created:", user)
-        res.status(201).json({success: true, message: "User created successfully", userId : user._id})
+        res.status(201).json({message: "User created successfully"})
     }
     catch(error){
         console.error("Error during user signup:", error)
         res.status(500).json({message: "Something went wrong"})
     }
 }
-``
+
 //User sign in ( logging in an existing user )
 export const login = async(req,res) => {
     console.log("Request body:", req.body)
@@ -126,7 +57,7 @@ export const login = async(req,res) => {
         console.log("User logged in:", user)
 
         // Add return to ensure response is sent
-        return res.status(200).json({message: "User logged in successfully", token, userId: user._id, name: user.name, email: user.email})
+        return res.status(200).json({message: "User logged in successfully", token})
     }
     catch(error){
         console.error("Error during user signin:", error)
@@ -134,25 +65,11 @@ export const login = async(req,res) => {
     }
 }
 
-//profile route ( protected route, requires authentication )
-export const protectedRoute = async (req, res) => {
-    try {
-        const user = await User_Model.findById(req.user.id).select("-password");
-
-        if (!user) {
-            return res.status(404).json({ msg: "User not found" });
-        }
-
-        res.json({
-            name: user.name,
-            email: user.email,
-            msg : `Hello ${req.user.email}, you accessed a protected route!`
-        });
-
-    } catch (err) {
-        res.status(500).json({ msg: err.message });
-    }
-};
+//Protecting routes ( verifying JWT token )
+export const protectedRoute = (req,res) =>{
+    res.json({message: `Hello ${req.user.email}, you accessed a protected route`})
+    console.log("Accessing protected route for user:", req.user)
+}
 
 //Public route ( accessible without authentication )
 export const publicRoute = (req,res) => {
@@ -160,4 +77,3 @@ export const publicRoute = (req,res) => {
     console.log("Accessing public route")
 
 }
->>>>>>> d36145242b138b23435ac5c73f9b664e2792fb0e
