@@ -3,10 +3,12 @@ import Item_Model from "../models/itemModel.js";
 // Create a new item
 export const addItem = async (req, res) => {
   try {
-    const { title, description, image } = req.body;
-    const data = new Item_Model({ title, description, image });
-    await data.save();
-    res.status(201).json(data);
+    const items = req.body; // should be an array of objects
+    if (!Array.isArray(items)) {
+           items = [items];
+    }
+    const savedItems = await Item_Model.insertMany(items); // save all at once
+    res.status(201).json(savedItems);
   } catch (error) {
     res.status(500).json({ msg: error.message });
   }
