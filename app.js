@@ -4,6 +4,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes.js';
 import connectDB from './config/db.js';
+import  itemRoutes from './routes/itemRoute.js';
+
 
 dotenv.config();
 
@@ -14,7 +16,10 @@ app.use(cors());
 
 connectDB();
 
-app.use("/api/auth", authRoutes)
+app.use("/api/auth", authRoutes);
+app.use("/api/items", itemRoutes);
+
+
 
 app.get("/",(req,res)=> {
     res.send("🚀 Auth API is running...")
