@@ -3,8 +3,8 @@ import mongoose from "mongoose";
 const ItemSchema = new mongoose.Schema({
     title: {type: String, required: true},
     description: {type: String, required: true},
-    image: {type: String, required: true},
-    // createdby: {type: mongoose.Schema.Types.ObjectId, ref: "User_Model", required: true},
+    image: {type: String},
+    createdby: {type: mongoose.Schema.Types.ObjectId, ref: "User_Model", required: true},
     createdAt: {type: Date, default: Date.now}
 
 })
