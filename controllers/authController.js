@@ -1,5 +1,5 @@
-import User_Model from "../models/User_Model.js";
-import bcrypt from "bcrypt";
+import User_Model from "../models/authModel.js";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 
@@ -21,7 +21,7 @@ export const signup = async(req,res)=>{
         await user.save()
 
         console.log("New user created:", user)
-        res.status(201).json({message: "User created successfully"})
+        res.status(201).json({success: true, message: "User created successfully", userId : user._id})
     }
     catch(error){
         console.error("Error during user signup:", error)
@@ -57,7 +57,7 @@ export const login = async(req,res) => {
         console.log("User logged in:", user)
 
         // Add return to ensure response is sent
-        return res.status(200).json({message: "User logged in successfully", token})
+        return res.status(200).json({message: "User logged in successfully", token, userId: user._id, name: user.name, email: user.email})
     }
     catch(error){
         console.error("Error during user signin:", error)
@@ -65,11 +65,25 @@ export const login = async(req,res) => {
     }
 }
 
-//Protecting routes ( verifying JWT token )
-export const protectedRoute = (req,res) =>{
-    res.json({message: `Hello ${req.user.email}, you accessed a protected route`})
-    console.log("Accessing protected route for user:", req.user)
-}
+//profile route ( protected route, requires authentication )
+export const protectedRoute = async (req, res) => {
+    try {
+        const user = await User_Model.findById(req.user.id).select("-password");
+
+        if (!user) {
+            return res.status(404).json({ msg: "User not found" });
+        }
+
+        res.json({
+            name: user.name,
+            email: user.email,
+            msg : `Hello ${req.user.email}, you accessed a protected route!`
+        });
+
+    } catch (err) {
+        res.status(500).json({ msg: err.message });
+    }
+};
 
 //Public route ( accessible without authentication )
 export const publicRoute = (req,res) => {
