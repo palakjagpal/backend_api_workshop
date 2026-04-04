@@ -15,8 +15,7 @@ app.use(cors());
 
 connectDB();
 
-app.use("/api/auth", authRoutes)
-
+app.use("/api/auth", authRoutes);
 app.use("/api/items", itemRoutes);
 
 app.get("/",(req,res)=> {
