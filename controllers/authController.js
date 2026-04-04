@@ -30,7 +30,7 @@ export const signup = async(req,res)=>{
 }
 ``
 //User sign in ( logging in an existing user )
-export const signin = async(req,res) => {
+export const login = async(req,res) => {
     console.log("Request body:", req.body)
     try{
         const {email, password} = req.body
