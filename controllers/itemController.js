@@ -51,17 +51,39 @@ export const addItem = async (req, res) => {
   }
 };
 
-// Get all items with find()
-export const getAllItems = async (req, res) => {
-  try {
-    const items = await Item_Model.find();
-    console.log("Items retrieved:", items);
-    console.log("Total items retrieved:", items.length);
-    res.status(200).json({success : true, message: "Items retrieved successfully", data : items});
-  } catch (error) {
-    res.status(500).json({ msg: error.message });
+// Get all items with find() with pagination
+export const getAllItems = async (req, res) =>
+   {
+   try {
+    const page = parseInt(req.query.page) || 1; // default page 1
+    const limit = parseInt(req.query.limit) || 10; // default 10 items per page
+    const skip_n = (page - 1) * limit;
+
+    const items = await Item_Model.find().skip(skip_n).limit(limit);
+    const total = await Item_Model.countDocuments();
+
+    res.status(200).json({
+      totalItems: total,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+      items,
+    });
+  } catch (error) {    res.status(500).json({ msg: error.message });
   }
-};
+}
+
+// Get all items with find()
+// export const getAllItems = async (req, res) => {
+//   try {
+//     const items = await Item_Model.find();
+//     console.log("Items retrieved:", items);
+//     console.log("Total items retrieved:", items.length);
+//     res.status(200).json({success : true, message: "Items retrieved successfully", data : items});
+
+//   } catch (error) {
+//     res.status(500).json({ msg: error.message });
+//   }
+// };
 
 // Get an item by ID with findById
 export const getItemById = async (req, res) => {
