@@ -48,11 +48,20 @@ export const login = async(req,res) => {
 
         }
 
+        if (!process.env.JWT_SECRET) {
+            throw new Error("JWT_SECRET is not defined");
+        }
+
+
         const token = jwt.sign(
             {id: user._id, email: user.email},
             process.env.JWT_SECRET,
             {expiresIn: "1h"}
         )
+
+        
+
+        console.log("JWT Token:", token)
 
         console.log("User logged in:", user)
 
