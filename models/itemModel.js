@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const ItemSchema = new mongoose.Schema({
     title: {type: String, required: true},
     description: {type: String, required: true},
-    image: {type: String},
+    image: { url: String, public_id: String},
     createdby: {type: mongoose.Schema.Types.ObjectId, ref: "User_Model"},
     createdAt: {type: Date, default: Date.now}
 

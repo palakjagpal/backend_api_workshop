@@ -2,11 +2,12 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
+dotenv.config();
+console.log("JWT_SECRET at startup:", process.env.JWT_SECRET);
+
 import authRoutes from './routes/authRoutes.js';
 import connectDB from './config/db.js';
 import  itemRoutes from './routes/itemRoute.js';
-
-dotenv.config();
 
 const app = express();
 

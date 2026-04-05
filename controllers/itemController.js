@@ -1,15 +1,53 @@
 import Item_Model from "../models/itemModel.js";
+import cloudinary from "../config/cloudinary.js";
 
 // Create a new item
 export const addItem = async (req, res) => {
   try {
-    const { title, description, image } = req.body;
-    const data = new Item_Model({ title, description, image });
-    await data.save();
-    console.log("New item created:", data);
-    res.status(201).json({success: true, message: "Item created successfully", data : data});
-  } catch (error) {
-    res.status(500).json({ msg: error.message });
+    const { title, description } = req.body;
+
+    let imageData = {};
+
+    if (req.file) {
+      const result = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "items" },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+
+        stream.end(req.file.buffer);
+      });
+
+      imageData = {
+        url: result.secure_url,
+        public_id: result.public_id,
+      };
+    }
+
+    const item = await Item.create({
+      title,
+      description,
+      image: imageData,
+      createdBy: req.user?.id, 
+    });
+
+    console.log("Item created:", item);
+    
+    return res.status(201).json({
+      success: true,
+      message: "Item created successfully",
+      data: item,
+    });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };
 
