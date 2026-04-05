@@ -61,7 +61,7 @@ export const login = async(req,res) => {
 
         
 
-        console.log("JWT Token:", token)
+        //console.log("JWT Token:", token)
 
         console.log("User logged in:", user)
 
