@@ -1,5 +1,10 @@
 import Item_Model from "../models/itemModel.js";
 import cloudinary from "../config/cloudinary.js";
+import multer from "multer";
+import fs from "fs";
+import csv from "csv-parser";
+import xlsx from "xlsx";
+
 
 // Create a new item
 export const addItem = async (req, res) => {
@@ -118,4 +123,118 @@ export const deleteItem = async (req, res) => {
   } catch (error) {
     res.status(500).json({ msg: error.message });
   }
+};
+
+// Multer setup (for bulk file)
+const upload = multer({ dest: "uploads/" }).single("file");
+export const bulkUpload = async (req, res) => {
+  upload(req, res, async (err) => {
+    if (err) {
+      return res.status(500).json({ success: false, message: err.message });
+    }
+
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "No file uploaded",
+        });
+      }
+
+      const filePath = req.file.path;
+      const ext = req.file.originalname.split(".").pop().toLowerCase();
+
+      // ================= CSV =================
+      if (ext === "csv") {
+        const results = [];
+
+        fs.createReadStream(filePath)
+          .pipe(csv())
+          .on("data", (data) => results.push(data))
+          .on("end", async () => {
+            try {
+              console.log("RAW CSV DATA:", results);
+
+              const cleanedData = results.map((item) => ({
+                title: item.title?.trim() || item.Title?.trim(),
+                description: item.description?.trim() || item.Description?.trim(),
+                image: item.image || item.Image || ""
+              }));
+
+              const validData = cleanedData.filter(
+                (item) => item.title && item.description
+              );
+
+              console.log("CLEANED DATA:", validData);
+
+              const saved = await Item_Model.insertMany(validData);
+
+              fs.unlinkSync(filePath);
+
+              return res.json({
+                success: true,
+                message: "CSV uploaded successfully",
+                insertedCount: saved.length,
+              });
+
+            } catch (error) {
+              console.error(error);
+              return res.status(500).json({
+                success: false,
+                message: error.message,
+              });
+            }
+          });
+
+      }
+
+      // ================= EXCEL =================
+      else if (ext === "xlsx") {
+        const workbook = xlsx.readFile(filePath);
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+        const data = xlsx.utils.sheet_to_json(sheet, { defval: "" });
+
+        console.log("RAW EXCEL DATA:", data);
+
+        const cleanedData = data.map((item) => ({
+          title: item.title?.trim() || item.Title?.trim(),
+          description: item.description?.trim() || item.Description?.trim(),
+          image: item.image || item.Image || ""
+        }));
+
+        const validData = cleanedData.filter(
+          (item) => item.title && item.description
+        );
+
+        // console.log("CLEANED DATA:", validData);
+
+        const saved = await Item_Model.insertMany(validData);
+
+        fs.unlinkSync(filePath);
+
+        return res.json({
+          success: true,
+          message: "Excel uploaded successfully",
+          insertedCount: saved.length,
+        });
+      }
+
+      // ================= INVALID =================
+      else {
+        fs.unlinkSync(filePath);
+        return res.status(400).json({
+          success: false,
+          message: "Only CSV or Excel files allowed",
+        });
+      }
+
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  });
 };
