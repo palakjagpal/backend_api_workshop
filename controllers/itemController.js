@@ -27,7 +27,7 @@ export const addItem = async (req, res) => {
       };
     }
 
-    const item = await Item.create({
+    const item = await Item_Model.create({
       title,
       description,
       image: imageData,
